@@ -1,11 +1,8 @@
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_app/Pages/FilesPage.dart';
 import 'package:flutter_app/Pages/ProfilePage.dart';
 import 'package:flutter_app/Pages/UploadPage.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 class HomePagee extends StatefulWidget {
   // const HomePagee() : super(key: key);
 
@@ -16,15 +13,7 @@ class HomePagee extends StatefulWidget {
 class _HomePageState extends State<HomePagee> {
   int page=0;
   var myColor = const Color(0xff3d4ebc); //blue color
-  TextEditingController email = TextEditingController();
-  TextEditingController password = TextEditingController();
-  String search="";
-  final form = GlobalKey<FormState>();
-  bool eyeObscure=true;
-  User? user = FirebaseAuth.instance.currentUser;
   PageController pageController= PageController();
-  List<UploadTask> uploadTasks = [];
-  late UploadTask uploadTask;
 
   void navigationTapped(int page) {
     //Animating Page

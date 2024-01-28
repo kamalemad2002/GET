@@ -3,11 +3,7 @@ class AuthService{
 AuthService(this.auth);
 FirebaseAuth auth;
 Stream<User?> get authStateChanges => auth.authStateChanges();
-
-
-
 Future logout() async {
   auth.signOut();
-}
-
-}
+  }
+    }

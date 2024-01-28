@@ -49,6 +49,9 @@ dependencies:
   file_picker: ^5.5.0
   fluttertoast: ^8.2.4
   permission_handler: ^10.4.5
+  advance_pdf_viewer2: ^2.0.5+1
+  archive: ^3.4.9
+  awesome_dialog: ^3.1.0
 flutter_launcher_icons:
   android: true
   ios: true
@@ -83,6 +86,12 @@ flutter:
     - image/image (2).png
     - image/ph1.jpg
     - image/BlueCloud.png
+    - image/FilesIcon.png
+    - image/login.jpg
+    - image/get.jpg
+    - image/gogle2.png
+    - image/xtwitter.jpg
+    - image/man-getting-award-writing_74855-5891.jpg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

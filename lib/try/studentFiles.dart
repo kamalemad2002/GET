@@ -1,19 +1,18 @@
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_app/Services/DatabaseServices.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter_app/Services/AuthServices.dart';
-import 'package:flutter_app/login.dart';
+import 'package:advance_pdf_viewer2/advance_pdf_viewer.dart';
 
 class FilesPage extends StatefulWidget {
-  const FilesPage({Key? key}) : super(key: key);
+  final String DocID;
+
+  const FilesPage({super.key, required this.DocID});
 
   @override
   _FilesPageState createState() => _FilesPageState();
@@ -21,33 +20,26 @@ class FilesPage extends StatefulWidget {
 
 class _FilesPageState extends State<FilesPage> {
   ReceivePort _port = ReceivePort();
-  List types = ['jpg', 'jpeg', 'tif', 'tiff', 'bmp', 'gif', 'png'];
+  String? DoctorID;
 
-  /*@override
-  void initState() {
-    //causing unexpected app shutdown
-    //TODO:Bug Fix
-    super.initState();
+  List types = ['jpg', 'jpeg', 'tif', 'tiff', 'bmp', 'gif', 'png', 'docx'];
 
-    _bindBackgroundIsolate();
+  // void getUserData() async {
+  //   print('Hello');
+  //   await FirebaseFirestore.instance.collection('users').doc(
+  //       FirebaseAuth.instance.currentUser!.uid).get().then((
+  //       DocumentSnapshot documentSnapshot) {
+  //     if (documentSnapshot.exists) {
+  //       store=documentSnapshot.data() as Map<String,dynamic>;
+  //       print(store);
+  //     }
+  //   });
+  // }
+  // Map<String, dynamic> store= {};
 
-    FlutterDownloader.registerCallback(downloadCallback);
-
-  }*/
-  var myColor = const Color(0xff3d4ebc); //blue color
-  TextEditingController email = TextEditingController();
+  var myColor = const Color(0xff3d4ebc);
   User? user = FirebaseAuth.instance.currentUser;
-  List<UploadTask> uploadTasks = [];
-  late UploadTask uploadTask;
 
-  /*@override
-  void dispose() {
-    //causing unexpected app shutdown
-    //TODO:Bug Fix
-    _unbindBackgroundIsolate();
-    super.dispose();
-
-  }*/
   void _bindBackgroundIsolate() {
     bool isSuccess = IsolateNameServer.registerPortWithName(
         _port.sendPort, 'downloader_send_port');
@@ -61,6 +53,10 @@ class _FilesPageState extends State<FilesPage> {
       DownloadTaskStatus? status = data[1];
       int? progress = data[2];
     });
+  }
+
+  Future<PDFDocument> loadPDFDocument(String url) async {
+    return await PDFDocument.fromURL(url);
   }
 
   void _unbindBackgroundIsolate() {
@@ -86,6 +82,11 @@ class _FilesPageState extends State<FilesPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
@@ -95,6 +96,7 @@ class _FilesPageState extends State<FilesPage> {
               //AppBar
               height: 55,
               width: double.infinity,
+
               child: Row(
                 children: [
                   Expanded(
@@ -118,34 +120,14 @@ class _FilesPageState extends State<FilesPage> {
                       ],
                     ),
                   ),
-                  // IconButton(
-                  //     onPressed: () {
-                  //         AuthService(FirebaseAuth.instance).logout();
-                  //       },
-                  //     icon: Icon(
-                  //       Icons.copy,
-                  //       color: myColor,
-                  //     ))
-                  InkWell(
-                    onTap: () {
-                      AuthService(FirebaseAuth.instance).logout();
-                      Navigator.push(
-                        context,
-                      MaterialPageRoute(builder: (context) => Test()),
-                      );
-                    },
-                    child: Row(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(1.0),
-                          child: Icon(Icons.logout, color: myColor, size: 30,),
-                        ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                      ],
-                    ),
-                  ),
+                  IconButton(
+                      onPressed: () {
+                        //TODO: copy button onTap
+                      },
+                      icon: Icon(
+                        Icons.copy,
+                        color: myColor,
+                      ))
                 ],
               ),
             ),
@@ -153,7 +135,7 @@ class _FilesPageState extends State<FilesPage> {
                 child: StreamBuilder(
               stream: DatabaseServices()
                   .userFiles
-                  .doc(user!.uid)
+                  .doc('${widget.DocID}')
                   .collection('userFiles')
                   .orderBy('time')
                   .snapshots(),
@@ -167,7 +149,7 @@ class _FilesPageState extends State<FilesPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Image.asset(
-                        "images/BlueCloud.png",
+                        'image/BlueCloud.png',
                         height: 150,
                       ),
                       Text("No file is your cloud drive"),
@@ -246,26 +228,55 @@ class _FilesPageState extends State<FilesPage> {
                                       ],
                                     ),
                                   ),
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.delete,
-                                      color: myColor,
-                                      size: 40,
-                                    ),
+                                  MaterialButton(
+                                    child: Text('View'),
                                     onPressed: () async {
-                                      await DatabaseServices()
-                                          .deleteDoc(doc['name']);
-                                      print("deleted");
+                                      if (doc['type'] == 'pdf') {
+                                        // Load the PDF document
+                                        PDFDocument pdfDocument =
+                                            await loadPDFDocument(doc['url']);
+
+                                        // Navigate to the PDF viewer screen
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                PDFViewerScreen(
+                                              pdfDocument: pdfDocument,
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        // Handle other types or show an error message
+                                      }
                                     },
                                   )
                                 ],
                               ),
-                            )).toList());
+                            ))
+                        .toList());
               },
             )),
           ],
         ),
       ),
+    );
+  }
+}
+
+class PDFViewerScreen extends StatelessWidget {
+  final PDFDocument? pdfDocument;
+
+  PDFViewerScreen({required this.pdfDocument});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('PDF Viewer'),
+        backgroundColor: Colors.green,
+      ),
+      body: PDFViewer(document: pdfDocument!, lazyLoad: true),
     );
   }
 }
